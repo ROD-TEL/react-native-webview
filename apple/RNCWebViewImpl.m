@@ -1131,6 +1131,17 @@ RCTAutoInsetsProtocol>
   didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
                   completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential * _Nullable))completionHandler
 {
+  // --- DÉBUT DE LA MODIFICATION CONTOURNEMENT SSL ---
+  if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]) {
+    NSLog(@"[RNCWebView-SSL-Debug] Received SSL challenge for host: %@", challenge.protectionSpace.host);
+            NSLog(@"[RNCWebView-SSL-Debug] Authentication method: %@", challenge.protectionSpace.authenticationMethod);
+            SecTrustRef serverTrust = challenge.protectionSpace.serverTrust;
+    NSURLCredential *credential = [NSURLCredential credentialForTrust:serverTrust];
+    completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
+    NSLog(@"[RNCWebView-SSL-Debug] Proceeding with potentially insecure certificate for: %@", challenge.protectionSpace.host);
+    return;
+  }
+  // --- FIN DE LA MODIFICATION ---
   NSString* host = nil;
   if (webView.URL != nil) {
     host = webView.URL.host;
